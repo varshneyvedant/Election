@@ -151,13 +151,40 @@ export default function AdminTabs({ data }: { data: any }) {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleToggleElection(!data.election?.isActive)}
-                  disabled={loading}
-                  className={`px-8 py-4 rounded-xl font-bold text-white transition-all shadow-lg uppercase tracking-widest active:scale-95 ${data.election?.isActive ? 'bg-red-600 hover:bg-red-500 hover:shadow-red-500/30' : 'bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/30'} disabled:opacity-50 disabled:animate-pulse`}
-                >
-                  {loading ? (data.election?.isActive ? 'HALTING...' : 'INITIALIZING...') : (data.election?.isActive ? 'Halt Election' : 'Initialize Election')}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {data.election?.isActive ? (
+                    <button
+                      onClick={() => handleToggleElection(false)}
+                      disabled={loading}
+                      className="px-8 py-4 rounded-xl font-bold text-white bg-red-600 hover:bg-red-500 transition-all shadow-lg shadow-red-500/30 uppercase tracking-widest active:scale-95 disabled:opacity-50 disabled:animate-pulse"
+                    >
+                      {loading ? 'HALTING...' : 'Halt Election'}
+                    </button>
+                  ) : (
+                    <>
+                      {data.users?.some((u: any) => u.role === 'student') ? (
+                        <button
+                          onClick={() => handleToggleElection(true, false)}
+                          disabled={loading}
+                          className="px-6 py-4 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/30 uppercase tracking-widest active:scale-95 disabled:opacity-50 disabled:animate-pulse"
+                        >
+                          {loading ? 'RESUMING...' : 'Resume Election'}
+                        </button>
+                      ) : null}
+                      <button
+                        onClick={() => {
+                          if (confirm('WARNING: This will permanently delete ALL current votes and generate new student keys. Are you sure you want to completely restart the election?')) {
+                            handleToggleElection(true, true);
+                          }
+                        }}
+                        disabled={loading}
+                        className="px-6 py-4 rounded-xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-all border border-slate-600 uppercase tracking-widest active:scale-95 disabled:opacity-50 disabled:animate-pulse"
+                      >
+                        {loading ? 'INITIALIZING...' : 'Reset & New Election'}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 

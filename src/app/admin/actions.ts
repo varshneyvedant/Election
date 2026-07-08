@@ -116,11 +116,11 @@ export async function updateCandidate(id: string, name: string, slogan: string) 
 }
 
 // Election Controls
-export async function toggleElection(isActive: boolean) {
+export async function toggleElection(isActive: boolean, resetDatabase: boolean = false) {
   await checkAdmin();
   try {
-    if (isActive) {
-      // PRE-GENERATE ALL 30 STUDENTS WITH SECRET KEYS
+    if (isActive && resetDatabase) {
+      // PRE-GENERATE ALL 30 STUDENTS WITH SECRET KEYS ONLY ON FULL RESET
       await prisma.vote.deleteMany({});
       await prisma.user.deleteMany({ where: { role: 'student' } });
       
@@ -129,7 +129,7 @@ export async function toggleElection(isActive: boolean) {
         const secretKey = Math.random().toString(36).substring(2, 8).toUpperCase();
         newStudents.push({
           username: i.toString(),
-          password: secretKey, // Stored as plain-text because it's a 1-time access code
+          password: secretKey,
           name: `Roll No. ${i}`,
           role: 'student',
           hasVoted: false
