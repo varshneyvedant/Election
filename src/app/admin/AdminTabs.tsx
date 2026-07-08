@@ -168,12 +168,14 @@ export default function AdminTabs({ data }: { data: any }) {
                   <p className="text-sm text-indigo-200/70">The system has generated 30 unique, mathematically secure Voter Keys. Distribute these privately to students for remote voting.</p>
                 </div>
                 <div className="flex gap-4">
-                  <button
-                    onClick={() => window.open('/admin/tickets', '_blank')}
-                    className="px-6 py-3 rounded-xl font-bold text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors uppercase tracking-widest text-sm whitespace-nowrap shadow-[0_0_20px_rgba(0,0,0,0.4)]"
+                  <a
+                    href="/admin/tickets"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-3 rounded-xl font-bold text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors uppercase tracking-widest text-sm whitespace-nowrap shadow-[0_0_20px_rgba(0,0,0,0.4)] inline-flex items-center justify-center"
                   >
                     Print Tickets (PDF)
-                  </button>
+                  </a>
                   <button
                     onClick={() => {
                       const headers = "Roll Number,Secret Key\n";
