@@ -107,33 +107,32 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
     if (!receiptRef.current) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(receiptRef.current, { scale: 2 });
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
-        const file = new File([blob], `Amity_Vote_Receipt_${voterId}.png`, { type: 'image/png' });
-        
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              title: 'I Voted in Amity Elections!',
-              text: 'I just cast my vote securely. ✅',
-              files: [file]
-            });
-          } catch (e) {
-            console.log('Share cancelled', e);
-          }
-        } else {
-          alert('Direct image sharing is only supported on mobile devices. Downloading your receipt instead.');
-          // Fallback to download
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `Amity_Vote_Receipt_${voterId}.png`;
-          a.click();
-          URL.revokeObjectURL(url);
+      const blob = await htmlToImage.toBlob(receiptRef.current, { backgroundColor: '#1e293b' });
+      if (!blob) return;
+      
+      const file = new File([blob], `Amity_Vote_Receipt_${voterId}.png`, { type: 'image/png' });
+      
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: 'I Voted in Amity Elections!',
+            text: 'I just cast my vote securely. ✅',
+            files: [file]
+          });
+        } catch (e) {
+          console.log('Share cancelled', e);
         }
-        setDownloading(false);
-      }, 'image/png');
+      } else {
+        alert('Direct image sharing is only supported on mobile devices. Downloading your receipt instead.');
+        // Fallback to download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Amity_Vote_Receipt_${voterId}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      setDownloading(false);
     } catch (err) {
       console.error('Failed to generate receipt', err);
       setDownloading(false);
