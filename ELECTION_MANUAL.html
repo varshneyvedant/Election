@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Polling Booth - Master Manual</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f9fafb;
+        }
+        h1 { color: #4f46e5; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+        h2 { color: #1f2937; margin-top: 40px; background: #e0e7ff; padding: 10px 15px; border-radius: 8px; }
+        h3 { color: #4338ca; }
+        .card {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        code {
+            background: #1f2937;
+            color: #10b981;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .warning {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 15px 0;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🏫 School Polling Booth - Official Master Manual</h1>
+    <p>Welcome to the <strong>School Polling Booth (Premium Edition)</strong>. This document contains EVERYTHING you need to know to move this software to a school computer, set it up, run the election, and securely extract the results.</p>
+
+    <div class="card">
+        <h2>💾 PART 1: HOW TO TRANSFER TO THE SCHOOL COMPUTER</h2>
+        <p>Right now, this software is on your personal laptop. To move it to the school computer via a Pen Drive:</p>
+        <ol>
+            <li><strong>Copy the Folder</strong>: Copy this entire project folder (<code>New folder</code>) onto your Pen Drive. <em>Note: It might take a few minutes because it contains many files.</em></li>
+            <li><strong>Paste it at School</strong>: Plug the Pen Drive into the school computer and copy the folder onto the school computer's Desktop. <strong>Do NOT run it directly from the Pen Drive</strong>, as it will be very slow.</li>
+            <li><strong>Install Node.js (Crucial Step)</strong>:
+                <br>The school computer MUST have Node.js installed to run this app. 
+                <ul>
+                    <li>Go to <a href="https://nodejs.org" target="_blank">https://nodejs.org</a> on the school computer.</li>
+                    <li>Download the <strong>"LTS" (Long Term Support)</strong> version.</li>
+                    <li>Install it (just keep clicking Next until it finishes).</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2>🚀 PART 2: HOW TO START THE ELECTION SERVER</h2>
+        <p>Once the folder is on the school computer's Desktop, follow these exact steps:</p>
+        <ol>
+            <li>Open the project folder on the school computer's Desktop.</li>
+            <li>In the folder window, click on the <strong>Address Bar</strong> at the very top.</li>
+            <li>Delete whatever text is there, type <code>cmd</code>, and press <strong>Enter</strong>. (This opens a black terminal window).</li>
+            <li>In the black terminal window, we first need to compile the optimized production version. Type this and press <strong>Enter</strong>:
+                <br><br><code>npm run build</code><br><br>
+            </li>
+            <li>Wait for the compilation to finish (it might take 1-2 minutes).</li>
+            <li>Once it says it has successfully built, type this command to start the highly efficient production server and press <strong>Enter</strong>:
+                <br><br><code>npm start</code><br><br>
+            </li>
+            <li>Wait for a few seconds until you see text saying "Ready".</li>
+            <div class="warning">
+                <strong>CRITICAL:</strong> Do NOT close this black window. If you close it, the election system turns off. Just minimize it.
+            </div>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2>🗳️ PART 3: HOW TO RUN THE ELECTION (PUBLIC KIOSK)</h2>
+        <p>Now that the server is running, the computer is officially an Electronic Voting Machine (EVM).</p>
+        <ol>
+            <li>Open <strong>Google Chrome</strong> on the school computer.</li>
+            <li>In the URL bar at the top, type:<br><br><code>localhost:3000</code><br><br></li>
+            <li>This is the <strong>Public Voting Kiosk</strong>.</li>
+            <li>Call the students one by one. They will enter their Voter ID/Roll Number on this screen.</li>
+            <li>The screen will welcome them, they will cast their vote, see their secure Digital Receipt Code, and the screen will automatically reset for the next person!</li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2>🔐 PART 4: HOW THE ADMIN LOGS IN</h2>
+        <p>To add candidates, register voters, or see the final results, you need to access the Admin Dashboard.</p>
+        <ol>
+            <li>Open a new tab in Google Chrome.</li>
+            <li>Type this secret link in the URL bar:<br><br><code>localhost:3000/login</code><br><br></li>
+            <li>Use the Master Credentials to log in:
+                <ul>
+                    <li><strong>Username</strong>: <code>admin</code></li>
+                    <li><strong>Password</strong>: <code>password123</code></li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2>📊 PART 5: USING THE ADMIN DASHBOARD</h2>
+        <p>Once inside the Admin Dashboard, you have 5 main tabs:</p>
+
+        <h3>1. Election Controls</h3>
+        <p>Click <strong>"Initialize Election"</strong> to allow students to start voting, or <strong>"Halt Election"</strong> to lock the system so nobody can vote.</p>
+        <div class="warning">Warning: Do NOT click "Purge Database" unless you want to permanently delete all votes and start over!</div>
+
+        <h3>2. Identity Register</h3>
+        <p>Here you add the students who are allowed to vote. Click <strong>"Add Manual Record"</strong>. Set the Clearance to <strong>Student</strong>. Their ID/Username is what they will type into the voting machine to vote (e.g. Roll Number 101).</p>
+
+        <h3>3. Ballot Configuration</h3>
+        <p>Here you add the Candidates who are running in the election. Add them before the election starts!</p>
+
+        <h3>4. Results (Highly Confidential)</h3>
+        <p>This tab shows the final vote counts. When you click it, the numbers are locked. Type the master password: <code>classeightelections</code> to reveal the final tallies and the total voter turnout.</p>
+
+        <h3>5. Election Audit Log</h3>
+        <p>This tab tracks exactly who voted for who. You must type <code>classeightelections</code> to unlock it. It will show a list of every single vote cast: Student Name ➔ Candidate Name ➔ Exact Time.</p>
+    </div>
+
+    <div class="card">
+        <h2>🛑 PART 6: HOW TO SHUT DOWN</h2>
+        <p>When the election is completely finished and you have written down the final results:</p>
+        <ol>
+            <li>Open the black terminal window that you minimized earlier.</li>
+            <li>Press <code>Ctrl + C</code> on your keyboard.</li>
+            <li>It might ask "Terminate batch job (Y/N)?". Type <code>Y</code> and press Enter.</li>
+            <li>You can now close the black window. The system is securely shut down.</li>
+        </ol>
+    </div>
+
+    <p style="text-align: center; color: #6b7280; font-size: 0.875rem; margin-top: 50px;">Developed securely for your School Election. 100% Offline and Private.</p>
+
+</body>
+</html>

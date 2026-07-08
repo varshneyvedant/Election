@@ -1,0 +1,144 @@
+'use server';
+
+import { getSession } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+import { revalidatePath } from 'next/cache';
+
+async function checkAdmin() {
+  const session = await getSession();
+  if (!session || session.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+}
+
+// User Management
+export async function addUser(data: any) {
+  await checkAdmin();
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+  
+  try {
+    await prisma.user.create({
+      data: {
+        username: data.username,
+        password: hashedPassword,
+        name: data.name,
+        role: data.role,
+      }
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (e) {
+    return { error: 'Failed to add user. Username might exist.' };
+  }
+}
+
+export async function deleteUser(id: string) {
+  await checkAdmin();
+  try {
+    await prisma.user.delete({ where: { id } });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (e) {
+    return { error: 'Failed to delete user' };
+  }
+}
+
+export async function updateUser(id: string, data: any) {
+  await checkAdmin();
+  try {
+    const updateData: any = {
+      username: data.username,
+      name: data.name,
+      role: data.role,
+    };
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+    await prisma.user.update({
+      where: { id },
+      data: updateData,
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (e) {
+    return { error: 'Failed to update user' };
+  }
+}
+
+// Candidate Management
+export async function addCandidate(name: string) {
+  await checkAdmin();
+  try {
+    await prisma.candidate.create({ data: { name } });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (e) {
+    return { error: 'Failed to add candidate' };
+  }
+}
+
+export async function deleteCandidate(id: string) {
+  await checkAdmin();
+  try {
+    await prisma.$transaction([
+      prisma.vote.deleteMany({ where: { candidateId: id } }),
+      prisma.candidate.delete({ where: { id } })
+    ]);
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (e) {
+    return { error: 'Failed to delete candidate' };
+  }
+}
+
+export async function updateCandidate(id: string, name: string) {
+  await checkAdmin();
+  try {
+    await prisma.candidate.update({
+      where: { id },
+      data: { name },
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (e) {
+    return { error: 'Failed to update candidate' };
+  }
+}
+
+// Election Controls
+export async function toggleElection(isActive: boolean) {
+  await checkAdmin();
+  try {
+    await prisma.election.upsert({
+      where: { id: 1 },
+      update: { isActive },
+      create: { id: 1, isActive }
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (e) {
+    return { error: 'Failed to toggle election status' };
+  }
+}
+
+export async function resetElection() {
+  await checkAdmin();
+  try {
+    await prisma.$transaction([
+      prisma.vote.deleteMany({}),
+      prisma.user.deleteMany({
+        where: { role: 'student' }
+      }),
+      prisma.election.upsert({
+        where: { id: 1 },
+        update: { isActive: false },
+        create: { id: 1, isActive: false }
+      })
+    ]);
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (e) {
+    return { error: 'Failed to reset election' };
+  }
+}

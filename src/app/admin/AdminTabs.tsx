@@ -1,0 +1,367 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import ResultsLock from '@/components/ResultsLock';
+import { 
+  addUser, deleteUser, updateUser, 
+  addCandidate, deleteCandidate, updateCandidate, 
+  toggleElection, resetElection 
+} from './actions';
+
+export default function AdminTabs({ data }: { data: any }) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('election');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Auto-refresh the page data every 3 seconds for live results
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [router]);
+
+  // Modals / Forms state
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  
+  const [showCandidateModal, setShowCandidateModal] = useState(false);
+  const [editingCandidate, setEditingCandidate] = useState<any>(null);
+
+  const [formData, setFormData] = useState<any>({});
+
+  const handleToggleElection = async (status: boolean) => {
+    if (!confirm(`Are you sure you want to ${status ? 'start' : 'stop'} the election?`)) return;
+    setLoading(true);
+    await toggleElection(status);
+    setLoading(false);
+  };
+
+  const handleResetElection = async () => {
+    if (!confirm('WARNING: This will delete ALL votes and reset all students. Proceed?')) return;
+    setLoading(true);
+    await resetElection();
+    setLoading(false);
+  };
+
+  const handleUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    let res;
+    if (editingUser) {
+      res = await updateUser(editingUser.id, formData);
+    } else {
+      res = await addUser(formData);
+    }
+    setLoading(false);
+    if (res?.error) setError(res.error);
+    else {
+      setShowUserModal(false);
+      setEditingUser(null);
+      setFormData({});
+      setError('');
+    }
+  };
+
+  const handleCandidateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    let res;
+    if (editingCandidate) {
+      res = await updateCandidate(editingCandidate.id, formData.name);
+    } else {
+      res = await addCandidate(formData.name);
+    }
+    setLoading(false);
+    if (res?.error) setError(res.error);
+    else {
+      setShowCandidateModal(false);
+      setEditingCandidate(null);
+      setFormData({});
+      setError('');
+    }
+  };
+
+  return (
+    <div className="bg-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-lg rounded-2xl overflow-hidden text-slate-300">
+      {/* Tabs Header */}
+      <div className="flex border-b border-slate-700/50 overflow-x-auto">
+        {['election', 'users', 'candidates', 'results', 'audit'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-6 py-4 text-sm font-bold uppercase tracking-widest whitespace-nowrap outline-none transition-all ${activeTab === tab ? 'text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/10' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'}`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-6 md:p-8">
+        {error && <div className="mb-6 bg-red-500/10 text-red-400 p-4 rounded-xl border border-red-500/20 font-medium">{error}</div>}
+
+        {/* ELECTION TAB */}
+        {activeTab === 'election' && (
+          <div className="space-y-8 animate-in fade-in">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-6 tracking-tight">Election Controls</h2>
+              <div className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-900/50 rounded-2xl border border-slate-700 shadow-inner gap-6">
+                <div>
+                  <h3 className="font-bold text-slate-400 uppercase tracking-widest text-xs mb-2">System Status</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="relative flex h-4 w-4">
+                      {data.election?.isActive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
+                      <span className={`relative inline-flex rounded-full h-4 w-4 ${data.election?.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                    </span>
+                    <p className={`text-2xl font-black tracking-wider ${data.election?.isActive ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {data.election?.isActive ? 'LIVE & ACTIVE' : 'LOCKED'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleToggleElection(!data.election?.isActive)}
+                  disabled={loading}
+                  className={`px-8 py-4 rounded-xl font-bold text-white transition-all shadow-lg uppercase tracking-widest active:scale-95 ${data.election?.isActive ? 'bg-red-600 hover:bg-red-500 hover:shadow-red-500/30' : 'bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/30'}`}
+                >
+                  {data.election?.isActive ? 'Halt Election' : 'Initialize Election'}
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 border border-red-500/30 bg-red-950/30 rounded-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+              <h3 className="font-bold text-red-400 text-lg uppercase tracking-wider mb-2">Danger Zone</h3>
+              <p className="text-sm text-red-300 mb-6">Resetting the election will permanently wipe all votes and VVPAT receipts from the database.</p>
+              <button
+                onClick={handleResetElection}
+                disabled={loading || data.election?.isActive}
+                className="px-6 py-3 rounded-lg font-bold text-white bg-red-600 hover:bg-red-500 disabled:opacity-50 transition-colors uppercase tracking-widest text-sm"
+              >
+                Purge Database
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* USERS TAB */}
+        {activeTab === 'users' && (
+          <div className="animate-in fade-in">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white tracking-tight">Identity Register</h2>
+              <button
+                onClick={() => { setEditingUser(null); setFormData({ role: 'student' }); setShowUserModal(true); }}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-colors uppercase tracking-wider shadow-lg shadow-indigo-500/20"
+              >
+                Add Manual Record
+              </button>
+            </div>
+            
+            <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/50">
+              <table className="w-full text-left text-sm text-slate-300">
+                <thead className="bg-slate-800 text-slate-400 uppercase tracking-widest text-xs border-b border-slate-700">
+                  <tr>
+                    <th className="px-6 py-4 font-bold">Name</th>
+                    <th className="px-6 py-4 font-bold">ID / Username</th>
+                    <th className="px-6 py-4 font-bold">Clearance</th>
+                    <th className="px-6 py-4 font-bold">Voted</th>
+                    <th className="px-6 py-4 font-bold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/50">
+                  {data.users.map((u: any) => (
+                    <tr key={u.id} className="hover:bg-slate-800/50 transition-colors">
+                      <td className="px-6 py-4 font-bold text-white">{u.name}</td>
+                      <td className="px-6 py-4 font-mono text-indigo-300">{u.username}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${u.role === 'admin' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' : u.role === 'teacher' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' : 'bg-slate-700/50 text-slate-300 border-slate-600'}`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {u.role === 'student' ? (
+                          u.hasVoted ? <span className="text-emerald-400 font-bold uppercase text-xs tracking-wider">Yes</span> : <span className="text-slate-500 font-bold uppercase text-xs tracking-wider">No</span>
+                        ) : '-'}
+                      </td>
+                      <td className="px-6 py-4 text-right space-x-4 font-medium">
+                        <button 
+                          onClick={() => { setEditingUser(u); setFormData({ username: u.username, name: u.name, role: u.role }); setShowUserModal(true); }}
+                          className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                        >EDIT</button>
+                        <button 
+                          onClick={async () => { if(confirm('Delete user?')) { setLoading(true); await deleteUser(u.id); setLoading(false); } }}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                        >DEL</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* CANDIDATES TAB */}
+        {activeTab === 'candidates' && (
+          <div className="animate-in fade-in">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-bold text-white tracking-tight">Ballot Configuration</h2>
+              <button
+                onClick={() => { setEditingCandidate(null); setFormData({}); setShowCandidateModal(true); }}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-colors uppercase tracking-wider shadow-lg shadow-indigo-500/20"
+              >
+                Add Candidate
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {data.candidates.map((c: any) => (
+                <div key={c.id} className="p-6 border border-slate-700 rounded-2xl bg-slate-900/50 flex flex-col justify-between hover:border-indigo-500/50 transition-colors group">
+                  <div className="w-12 h-12 bg-slate-800 text-indigo-400 rounded-full flex items-center justify-center font-bold text-xl mb-4 uppercase">
+                    {c.name.charAt(0)}
+                  </div>
+                  <span className="font-bold text-white text-xl mb-6">{c.name}</span>
+                  <div className="flex space-x-4 text-sm font-bold uppercase tracking-wider pt-4 border-t border-slate-700/50">
+                    <button 
+                      onClick={() => { setEditingCandidate(c); setFormData({ name: c.name }); setShowCandidateModal(true); }}
+                      className="text-indigo-400 hover:text-indigo-300"
+                    >Edit</button>
+                    <button 
+                      onClick={async () => { if(confirm('Delete candidate?')) { setLoading(true); await deleteCandidate(c.id); setLoading(false); } }}
+                      className="text-red-400 hover:text-red-300"
+                    >Remove</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* RESULTS TAB */}
+        {activeTab === 'results' && (
+          <ResultsLock>
+            <div className="animate-in fade-in">
+               <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Decrypted Results</h2>
+               <p className="text-slate-400 mb-8 uppercase tracking-widest text-xs font-bold">Highly Confidential</p>
+               
+               <div className="space-y-4 mb-8">
+                 {data.candidates.map((c: any) => (
+                   <div key={c.id} className="flex justify-between items-center p-6 border border-slate-700 rounded-2xl bg-slate-900/50 hover:bg-slate-800 transition-colors relative overflow-hidden">
+                     <div className="relative z-10 flex items-center gap-4">
+                       <div className="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center font-bold uppercase">{c.name.charAt(0)}</div>
+                       <span className="font-bold text-white text-lg">{c.name}</span>
+                     </div>
+                     <span className="relative z-10 font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">{c._count.votes} <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Votes</span></span>
+                   </div>
+                 ))}
+               </div>
+
+               <div className="p-8 bg-indigo-600 rounded-2xl flex justify-between items-center font-bold shadow-[0_0_40px_rgba(79,70,229,0.3)] relative overflow-hidden">
+                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.1] mix-blend-overlay"></div>
+                 <span className="text-indigo-200 uppercase tracking-widest z-10">Total Verified Ballots</span>
+                 <span className="text-4xl text-white z-10 font-black">{data.candidates.reduce((a:any, c:any) => a + c._count.votes, 0)}</span>
+               </div>
+            </div>
+          </ResultsLock>
+        )}
+
+        {/* AUDIT LOG TAB */}
+        {activeTab === 'audit' && (
+          <ResultsLock>
+            <div className="animate-in fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white tracking-tight">Election Audit Log</h2>
+                <span className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/30 rounded-full text-xs font-bold uppercase tracking-widest">
+                  Not Anonymous
+                </span>
+              </div>
+              <p className="text-slate-400 mb-8 text-sm">This log reveals the exact voting choice of every student. Treat this data with strict confidentiality.</p>
+              
+              <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/50">
+                <table className="w-full text-left text-sm text-slate-300">
+                  <thead className="bg-slate-800 text-slate-400 uppercase tracking-widest text-xs border-b border-slate-700">
+                    <tr>
+                      <th className="px-6 py-4 font-bold">Voter ID / Name</th>
+                      <th className="px-6 py-4 font-bold">Voted For</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/50">
+                    {data.auditLogs?.map((log: any) => (
+                      <tr key={log.id} className="hover:bg-slate-800/50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-white">
+                          <span className="text-indigo-300 font-mono block text-xs">{log.student.username}</span>
+                          {log.student.name}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-emerald-400 uppercase tracking-wider">{log.candidate.name}</td>
+                      </tr>
+                    ))}
+                    {(!data.auditLogs || data.auditLogs.length === 0) && (
+                      <tr>
+                        <td colSpan={2} className="px-6 py-8 text-center text-slate-500 italic">No votes cast yet.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </ResultsLock>
+        )}
+      </div>
+
+      {/* User Modal */}
+      {showUserModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-xl font-bold mb-4">{editingUser ? 'Edit User' : 'Add User'}</h3>
+            <form onSubmit={handleUserSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Name</label>
+                <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Username</label>
+                <input required type="text" value={formData.username || ''} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Password {editingUser && '(leave blank to keep current)'}</label>
+                <input required={!editingUser} type="password" value={formData.password || ''} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Role</label>
+                <select value={formData.role || 'student'} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500 bg-white">
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button type="button" onClick={() => setShowUserModal(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Candidate Modal */}
+      {showCandidateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-xl font-bold mb-4">{editingCandidate ? 'Edit Candidate' : 'Add Candidate'}</h3>
+            <form onSubmit={handleCandidateSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Candidate Name</label>
+                <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500" />
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button type="button" onClick={() => setShowCandidateModal(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

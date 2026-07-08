@@ -1,0 +1,114 @@
+{
+  "node": {
+    "706ffb308f25885a3854781bbf7b58303dc17cd2a5": {
+      "workers": {
+        "app/page": {
+          "moduleId": 50173,
+          "async": false,
+          "exportedName": "castPublicVote",
+          "filename": "src/app/public-actions.ts"
+        }
+      },
+      "filename": "src/app/public-actions.ts",
+      "exportedName": "castPublicVote"
+    },
+    "40b468f98dd3f637e74e705323e956613fdda78198": {
+      "workers": {
+        "app/admin/page": {
+          "moduleId": 72019,
+          "async": false,
+          "exportedName": "addUser",
+          "filename": "src/app/admin/actions.ts"
+        }
+      },
+      "filename": "src/app/admin/actions.ts",
+      "exportedName": "addUser"
+    },
+    "409748dec68a9e22c3d6032c704eb475fb85789e50": {
+      "workers": {
+        "app/admin/page": {
+          "moduleId": 72019,
+          "async": false,
+          "exportedName": "deleteUser",
+          "filename": "src/app/admin/actions.ts"
+        }
+      },
+      "filename": "src/app/admin/actions.ts",
+      "exportedName": "deleteUser"
+    },
+    "60eeb1fabc802c5cabc8248502646aad4ad275cd1d": {
+      "workers": {
+        "app/admin/page": {
+          "moduleId": 72019,
+          "async": false,
+          "exportedName": "updateUser",
+          "filename": "src/app/admin/actions.ts"
+        }
+      },
+      "filename": "src/app/admin/actions.ts",
+      "exportedName": "updateUser"
+    },
+    "405a0b40af22161cfd66b5c24f9b93cffd34bb9a91": {
+      "workers": {
+        "app/admin/page": {
+          "moduleId": 72019,
+          "async": false,
+          "exportedName": "addCandidate",
+          "filename": "src/app/admin/actions.ts"
+        }
+      },
+      "filename": "src/app/admin/actions.ts",
+      "exportedName": "addCandidate"
+    },
+    "409b5387404f5e747146a4b329221e0097bcaf2699": {
+      "workers": {
+        "app/admin/page": {
+          "moduleId": 72019,
+          "async": false,
+          "exportedName": "deleteCandidate",
+          "filename": "src/app/admin/actions.ts"
+        }
+      },
+      "filename": "src/app/admin/actions.ts",
+      "exportedName": "deleteCandidate"
+    },
+    "608f24db78883fabf83ce30e996726c323954c95c9": {
+      "workers": {
+        "app/admin/page": {
+          "moduleId": 72019,
+          "async": false,
+          "exportedName": "updateCandidate",
+          "filename": "src/app/admin/actions.ts"
+        }
+      },
+      "filename": "src/app/admin/actions.ts",
+      "exportedName": "updateCandidate"
+    },
+    "401f1bb5cb23e17c27ea3a90f92fd381cb6d4ebb55": {
+      "workers": {
+        "app/admin/page": {
+          "moduleId": 72019,
+          "async": false,
+          "exportedName": "toggleElection",
+          "filename": "src/app/admin/actions.ts"
+        }
+      },
+      "filename": "src/app/admin/actions.ts",
+      "exportedName": "toggleElection"
+    },
+    "007bb28aa3f93ae8f01b5b014a16253c45f844b6c0": {
+      "workers": {
+        "app/admin/page": {
+          "moduleId": 72019,
+          "async": false,
+          "exportedName": "resetElection",
+          "filename": "src/app/admin/actions.ts"
+        }
+      },
+      "filename": "src/app/admin/actions.ts",
+      "exportedName": "resetElection"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "yC61snU3z83s+Lb1MY0j8CLU9+wDFCO1wf7DQsw1zNw="
+}

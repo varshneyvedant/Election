@@ -1,0 +1,17 @@
+{
+  "node": {
+    "706ffb308f25885a3854781bbf7b58303dc17cd2a5": {
+      "workers": {
+        "app/page": {
+          "moduleId": 50173,
+          "async": false,
+          "exportedName": "castPublicVote",
+          "filename": "src/app/public-actions.ts"
+        }
+      },
+      "exportedName": "castPublicVote",
+      "filename": "src/app/public-actions.ts"
+    }
+  },
+  "edge": {}
+}
