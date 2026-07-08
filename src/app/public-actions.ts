@@ -86,3 +86,35 @@ export async function getLiveTurnout() {
     return 0;
   }
 }
+
+export async function verifyVoterKey(voterIdRaw: string, voterKey: string) {
+  try {
+    const election = await prisma.election.findUnique({ where: { id: 1 } });
+    if (!election || !election.isActive) {
+      return { error: 'Election is currently closed.' };
+    }
+
+    const rollNo = parseInt(voterIdRaw.trim(), 10);
+    if (isNaN(rollNo) || rollNo < 1 || rollNo > 30) {
+      return { error: 'Invalid Roll No. Must be a number between 1 and 30.' };
+    }
+    const username = rollNo.toString();
+
+    const existingVoter = await prisma.user.findUnique({ where: { username } });
+    if (!existingVoter) {
+      return { error: 'Student record not found. Election might not be initialized properly.' };
+    }
+
+    if (existingVoter.hasVoted) {
+      return { error: 'A vote has already been securely cast for this Roll Number.' };
+    }
+    
+    if (!voterKey || existingVoter.password !== voterKey.trim().toUpperCase()) {
+      return { error: 'Invalid Secret Voter Key for this Roll Number.' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: 'Error validating voter key.' };
+  }
+}

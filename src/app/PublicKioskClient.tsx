@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { castPublicVote, getLiveTurnout } from './public-actions';
+import { castPublicVote, getLiveTurnout, verifyVoterKey } from './public-actions';
 import { Candidate } from '@prisma/client';
 import * as htmlToImage from 'html-to-image';
 
@@ -34,7 +34,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
     return () => clearInterval(interval);
   }, [step]);
 
-  const handleVerify = (e?: React.FormEvent) => {
+  const handleVerify = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!voterId) {
       setError('Please select your Roll Number.');
@@ -44,6 +44,15 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
       setError('Please enter your 6-character Secret Voter Key.');
       return;
     }
+    
+    // VERIFY WITH SERVER FIRST
+    setError('Verifying secure key...');
+    const res = await verifyVoterKey(voterId, voterKey.trim().toUpperCase());
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+
     setError('');
     setStep('welcome');
     // Auto transition to ballot after 2.5s
