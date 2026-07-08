@@ -17,6 +17,13 @@ export default async function PublicVotingPage() {
           </div>
           <h1 className="text-3xl font-bold text-slate-100 mb-2 tracking-tight">Election Closed</h1>
           <p className="text-slate-400 mb-8">The polling booth is currently inactive.</p>
+          
+          {election?.resultsPublished && (
+            <Link href="/results" className="block w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:opacity-90 text-white font-black py-4 px-6 rounded-xl uppercase tracking-widest mb-6 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all">
+              View Official Results
+            </Link>
+          )}
+
           <Link href="/login" className="text-indigo-400 hover:text-indigo-300 hover:underline text-sm font-medium transition-colors">
             Administrator Access &rarr;
           </Link>

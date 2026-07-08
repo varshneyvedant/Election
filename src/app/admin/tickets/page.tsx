@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth';
+import PrintButton from './PrintButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,12 +32,7 @@ export default async function TicketsPage() {
             <h1 className="text-2xl font-bold text-indigo-900">Official Voter Keys</h1>
             <p className="text-indigo-600">Print this page and cut out the individual tickets for distribution.</p>
           </div>
-          <button 
-            className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 print:hidden"
-            id="print-btn"
-          >
-            PRINT TICKETS NOW
-          </button>
+          <PrintButton />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 print:grid-cols-3 print:gap-4 print:w-[210mm]">
@@ -61,11 +57,6 @@ export default async function TicketsPage() {
         </div>
       </div>
       
-      <script dangerouslySetInnerHTML={{__html: `
-        document.getElementById('print-btn').addEventListener('click', function() {
-          window.print();
-        });
-      `}} />
     </div>
   );
 }
