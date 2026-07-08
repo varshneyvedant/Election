@@ -9,6 +9,8 @@ export async function castPublicVote(formData: FormData) {
     const name = formData.get('name') as string || '';
     const candidateId = formData.get('candidateId') as string;
 
+    const voterKey = formData.get('voterKey') as string;
+
     // Check if election is active
     const election = await prisma.election.findUnique({ where: { id: 1 } });
     if (!election || !election.isActive) {
@@ -28,30 +30,43 @@ export async function castPublicVote(formData: FormData) {
       return { error: 'Invalid candidate.' };
     }
 
-    // Check if Roll No already voted
+    // 1. Fetch the pre-registered user
     const existingVoter = await prisma.user.findUnique({ where: { username } });
-    if (existingVoter) {
-      return { error: 'Error: A vote has already been cast for this Roll Number.' };
+    if (!existingVoter) {
+      return { error: 'Student record not found. Election might not be initialized properly.' };
+    }
+    
+    // 2. Validate Key
+    if (!voterKey || existingVoter.password !== voterKey.trim().toUpperCase()) {
+      return { error: 'Invalid Secret Voter Key for this Roll Number.' };
     }
 
     // Generate unique VVPAT receipt code
     const receiptCode = Math.random().toString(16).substring(2, 10).toUpperCase();
 
-    // Cast vote and register the voter atomically
-    await prisma.user.create({
-      data: {
-        username: username,
-        password: 'public_voter_no_login', // They cannot log in with this
-        name: name.trim() || `Roll No. ${username}`,
-        role: 'student',
-        hasVoted: true,
-        votes: {
-          create: {
+    // 3. ATOMIC UPDATE to prevent race condition (double voting)
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Attempt to mark as voted. If already voted, this will update 0 rows
+        const updated = await tx.user.updateMany({
+          where: { username, hasVoted: false },
+          data: { hasVoted: true }
+        });
+        
+        if (updated.count === 0) {
+          throw new Error('A vote has already been securely cast for this Roll Number.');
+        }
+
+        await tx.vote.create({
+          data: {
+            studentId: existingVoter.id,
             candidateId: candidateId
           }
-        }
-      }
-    });
+        });
+      });
+    } catch (txError: any) {
+      return { error: txError.message || 'Error processing vote.' };
+    }
 
     revalidatePath('/');
     revalidatePath('/admin');

@@ -8,6 +8,7 @@ import * as htmlToImage from 'html-to-image';
 export default function PublicKioskClient({ candidates }: { candidates: Candidate[] }) {
   const [step, setStep] = useState<'verify' | 'welcome' | 'vote' | 'success'>('verify');
   const [voterId, setVoterId] = useState('');
+  const [voterKey, setVoterKey] = useState('');
   const [receiptCode, setReceiptCode] = useState('');
   
   const [turnout, setTurnout] = useState(0);
@@ -39,6 +40,10 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
       setError('Please select your Roll Number.');
       return;
     }
+    if (voterKey.trim().length !== 6) {
+      setError('Please enter your 6-character Secret Voter Key.');
+      return;
+    }
     setError('');
     setStep('welcome');
     // Auto transition to ballot after 2.5s
@@ -54,6 +59,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
 
     const formData = new FormData();
     formData.append('voterId', voterId);
+    formData.append('voterKey', voterKey.trim().toUpperCase());
     formData.append('candidateId', confirmingCandidate.id);
 
     const res = await castPublicVote(formData);
@@ -90,6 +96,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
 
   const resetKiosk = () => {
     setVoterId('');
+    setVoterKey('');
     setReceiptCode('');
     setStep('verify');
     setIsSubmitting(false);
@@ -216,10 +223,26 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
             </div>
           </div>
           
+          {voterId && (
+            <div className="max-w-lg mx-auto mb-6 animate-in slide-in-from-top-4 fade-in duration-300">
+              <label className="block text-sm font-bold text-amber-400 mb-2 text-center uppercase tracking-widest">
+                Enter Secret Voter Key for Roll No. {voterId}
+              </label>
+              <input 
+                type="text" 
+                value={voterKey}
+                onChange={(e) => setVoterKey(e.target.value.toUpperCase())}
+                placeholder="6-CHAR KEY"
+                maxLength={6}
+                className="w-full bg-slate-900/80 border-2 border-amber-500/50 rounded-xl px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+              />
+            </div>
+          )}
+
           <div className="max-w-lg mx-auto">
             <button
               onClick={() => handleVerify()}
-              disabled={!voterId}
+              disabled={!voterId || voterKey.length !== 6}
               className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] disabled:shadow-none text-lg active:scale-[0.98]"
             >
               PROCEED TO BALLOT

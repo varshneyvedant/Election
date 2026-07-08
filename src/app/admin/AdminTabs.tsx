@@ -159,6 +159,29 @@ export default function AdminTabs({ data }: { data: any }) {
                 </button>
               </div>
             </div>
+
+            {data.election?.isActive && (
+              <div className="p-6 bg-indigo-900/30 border border-indigo-500/30 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-bottom-4">
+                <div>
+                  <h3 className="font-bold text-indigo-400 text-lg uppercase tracking-wider mb-2">Remote Voter Keys</h3>
+                  <p className="text-sm text-indigo-200/70">The system has generated 30 unique, mathematically secure Voter Keys. Distribute these privately to students for remote voting.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    const keys = data.users.filter((u:any) => u.role === 'student').map((u:any) => `Roll No: ${u.username} | Secret Key: ${u.password}`).join('\\n');
+                    const blob = new Blob([keys], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'Amity_Remote_Voter_Keys.txt';
+                    a.click();
+                  }}
+                  className="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors uppercase tracking-widest text-sm whitespace-nowrap shadow-[0_0_20px_rgba(79,70,229,0.4)]"
+                >
+                  Download Keys (TXT)
+                </button>
+              </div>
+            )}
             
             <div className="p-6 border border-red-500/30 bg-red-950/30 rounded-2xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>

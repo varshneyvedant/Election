@@ -119,6 +119,24 @@ export async function updateCandidate(id: string, name: string) {
 export async function toggleElection(isActive: boolean) {
   await checkAdmin();
   try {
+    if (isActive) {
+      // PRE-GENERATE ALL 30 STUDENTS WITH SECRET KEYS
+      await prisma.user.deleteMany({ where: { role: 'student' } });
+      
+      const newStudents = [];
+      for (let i = 1; i <= 30; i++) {
+        const secretKey = Math.random().toString(36).substring(2, 8).toUpperCase();
+        newStudents.push({
+          username: i.toString(),
+          password: secretKey, // Stored as plain-text because it's a 1-time access code
+          name: `Roll No. ${i}`,
+          role: 'student',
+          hasVoted: false
+        });
+      }
+      await prisma.user.createMany({ data: newStudents });
+    }
+
     await prisma.election.upsert({
       where: { id: 1 },
       update: { isActive },
@@ -126,8 +144,8 @@ export async function toggleElection(isActive: boolean) {
     });
     revalidatePath('/admin');
     return { success: true };
-  } catch (e) {
-    return { error: 'Failed to toggle election status' };
+  } catch (e: any) {
+    return { error: e.message || 'Failed to toggle election status' };
   }
 }
 
