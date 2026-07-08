@@ -25,13 +25,13 @@ model Candidate {
 }
 
 model Vote {
-  id          String   @id @default(cuid())
-  voterId     String   @unique
+  id          String   @id @default(uuid())
+  studentId   String   @unique
   candidateId String
   reason      String?
   createdAt   DateTime @default(now())
 
-  student     User      @relation(fields: [voterId], references: [id])
+  student     User      @relation(fields: [studentId], references: [id])
   candidate   Candidate @relation(fields: [candidateId], references: [id])
 }
 

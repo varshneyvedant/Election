@@ -60,7 +60,7 @@ export async function castPublicVote(formData: FormData) {
 
         await tx.vote.create({
           data: {
-            voterId: existingVoter.id,
+            studentId: existingVoter.id,
             candidateId,
             reason
           }

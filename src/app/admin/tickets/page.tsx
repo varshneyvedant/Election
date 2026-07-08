@@ -35,7 +35,7 @@ export default async function TicketsPage() {
           <PrintButton />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 print:grid-cols-3 print:gap-4 print:w-[210mm]">
+        <div id="ticket-container" className="grid grid-cols-2 md:grid-cols-3 gap-4 print:grid-cols-3 print:gap-4 print:w-[210mm] bg-white p-4">
           {students.map((student, index) => (
             <div key={student.id} className="border-2 border-black border-dashed p-4 relative bg-white break-inside-avoid">
               <div className="flex items-center justify-between mb-4 border-b-2 border-black pb-2">
