@@ -423,6 +423,7 @@ export default function AdminTabs({ data }: { data: any }) {
                     <tr>
                       <th className="px-6 py-4 font-bold">Voter ID / Name</th>
                       <th className="px-6 py-4 font-bold">Voted For</th>
+                      <th className="px-6 py-4 font-bold">Reason</th>
                       <th className="px-6 py-4 font-bold text-right">Time Cast</th>
                     </tr>
                   </thead>
@@ -434,6 +435,9 @@ export default function AdminTabs({ data }: { data: any }) {
                           {log.student.name}
                         </td>
                         <td className="px-6 py-4 font-bold text-emerald-400 uppercase tracking-wider">{log.candidate.name}</td>
+                        <td className="px-6 py-4 text-slate-300 text-sm max-w-xs truncate" title={log.reason || 'None'}>
+                          {log.reason ? `"${log.reason}"` : <span className="text-slate-500 italic">None provided</span>}
+                        </td>
                         <td className="px-6 py-4 font-mono text-slate-400 text-right text-xs">
                           {log.createdAt ? new Date(log.createdAt).toLocaleTimeString() : 'N/A'}
                         </td>
@@ -441,7 +445,7 @@ export default function AdminTabs({ data }: { data: any }) {
                     ))}
                     {(!data.auditLogs || data.auditLogs.length === 0) && (
                       <tr>
-                        <td colSpan={2} className="px-6 py-8 text-center text-slate-500 italic">No votes cast yet.</td>
+                        <td colSpan={4} className="px-6 py-8 text-center text-slate-500 italic">No votes cast yet.</td>
                       </tr>
                     )}
                   </tbody>

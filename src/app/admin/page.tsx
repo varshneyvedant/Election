@@ -34,7 +34,8 @@ export default async function AdminDashboard() {
       include: {
         student: { select: { name: true, username: true } },
         candidate: { select: { name: true } }
-      }
+      },
+      orderBy: { createdAt: 'desc' }
     })
   ]);
 

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export default async function PublicVotingPage() {
   const election = await prisma.election.findUnique({ where: { id: 1 } });
   
-  if (!election || !election.isActive) {
+  if (!election || !election.isActive || election.resultsPublished) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] pointer-events-none"></div>

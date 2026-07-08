@@ -10,6 +10,7 @@ export async function castPublicVote(formData: FormData) {
     const candidateId = formData.get('candidateId') as string;
 
     const voterKey = formData.get('voterKey') as string;
+    const reason = formData.get('reason') as string || null;
 
     // Check if election is active
     const election = await prisma.election.findUnique({ where: { id: 1 } });
@@ -59,8 +60,9 @@ export async function castPublicVote(formData: FormData) {
 
         await tx.vote.create({
           data: {
-            studentId: existingVoter.id,
-            candidateId: candidateId
+            voterId: existingVoter.id,
+            candidateId,
+            reason
           }
         });
       });

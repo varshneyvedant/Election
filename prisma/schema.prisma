@@ -25,14 +25,14 @@ model Candidate {
 }
 
 model Vote {
-  id          String    @id @default(uuid())
-  studentId   String
+  id          String   @id @default(cuid())
+  voterId     String   @unique
   candidateId String
-  student     User      @relation(fields: [studentId], references: [id])
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
-  createdAt   DateTime  @default(now())
+  reason      String?
+  createdAt   DateTime @default(now())
 
-  @@unique([studentId]) // A student can only vote once
+  student     User      @relation(fields: [voterId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
 }
 
 model Election {
