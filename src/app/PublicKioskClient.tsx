@@ -168,7 +168,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-2">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6">
           <button 
             onClick={handleDownloadReceipt}
             disabled={downloading}
@@ -177,6 +177,18 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             {downloading ? 'Downloading...' : 'DOWNLOAD RECEIPT'}
           </button>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-3 mb-2">
+          <a href="https://api.whatsapp.com/send?text=I%20just%20voted%20in%20the%20Amity%20Elections!%20%E2%9C%85" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1DA851] text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-lg">
+            Share on WhatsApp
+          </a>
+          <a href="https://twitter.com/intent/tweet?text=I%20just%20voted%20in%20the%20Amity%20Elections!%20%E2%9C%85" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#1DA1F2] hover:bg-[#1A91DA] text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-lg">
+            Share on X
+          </a>
+          <a href="https://www.facebook.com/sharer/sharer.php?u=https://election-wheat.vercel.app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-lg">
+            Share on Facebook
+          </a>
         </div>
         <button 
           onClick={resetKiosk}

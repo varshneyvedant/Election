@@ -168,17 +168,18 @@ export default function AdminTabs({ data }: { data: any }) {
                 </div>
                 <button
                   onClick={() => {
-                    const keys = data.users.filter((u:any) => u.role === 'student').map((u:any) => `Roll No: ${u.username} | Secret Key: ${u.password}`).join('\\n');
-                    const blob = new Blob([keys], { type: 'text/plain' });
+                    const headers = "Roll Number,Secret Key\n";
+                    const rows = data.users.filter((u:any) => u.role === 'student').map((u:any) => `${u.username},${u.password}`).join('\n');
+                    const blob = new Blob([headers + rows], { type: 'text/csv' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'Amity_Remote_Voter_Keys.txt';
+                    a.download = 'Amity_Remote_Voter_Keys.csv';
                     a.click();
                   }}
                   className="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors uppercase tracking-widest text-sm whitespace-nowrap shadow-[0_0_20px_rgba(79,70,229,0.4)]"
                 >
-                  Download Keys (TXT)
+                  Download Keys (CSV)
                 </button>
               </div>
             )}

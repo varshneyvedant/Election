@@ -9,7 +9,7 @@ export default function ResultsLock({ children }: { children: React.ReactNode })
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'classeightelections') {
+    if (password === 'developer') {
       setIsLocked(false);
       setError('');
     } else {
