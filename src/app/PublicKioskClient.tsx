@@ -103,6 +103,43 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
     }
   };
 
+  const handleShareReceipt = async () => {
+    if (!receiptRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(receiptRef.current, { scale: 2 });
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], `Amity_Vote_Receipt_${voterId}.png`, { type: 'image/png' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              title: 'I Voted in Amity Elections!',
+              text: 'I just cast my vote securely. ✅',
+              files: [file]
+            });
+          } catch (e) {
+            console.log('Share cancelled', e);
+          }
+        } else {
+          alert('Direct image sharing is only supported on mobile devices. Downloading your receipt instead.');
+          // Fallback to download
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Amity_Vote_Receipt_${voterId}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+        setDownloading(false);
+      }, 'image/png');
+    } catch (err) {
+      console.error('Failed to generate receipt', err);
+      setDownloading(false);
+    }
+  };
+
   const resetKiosk = () => {
     setVoterId('');
     setVoterKey('');
@@ -138,8 +175,17 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             STOP! IMPORTANT
           </p>
-          <p className="text-xs mt-1">Please download your official VVPAT receipt to your camera roll before closing this page as proof of voting.</p>
+          <p className="text-xs mt-1">Please download or share your official VVPAT receipt as proof of voting.</p>
         </div>
+
+        <button 
+          onClick={handleShareReceipt}
+          disabled={downloading}
+          className="mb-8 mx-auto flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:opacity-90 text-white font-black tracking-widest uppercase py-5 px-10 rounded-2xl transition-all disabled:opacity-50 shadow-[0_0_40px_rgba(236,72,153,0.4)] w-full max-w-md text-xl animate-pulse"
+        >
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+          {downloading ? 'Processing...' : 'Share Receipt to Socials'}
+        </button>
 
         {/* Instagram Graphic Receipt Simulation */}
         <div ref={receiptRef} className="w-[300px] h-[533px] mx-auto mb-8 relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 flex flex-col justify-between p-6">
@@ -168,27 +214,15 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-2">
           <button 
             onClick={handleDownloadReceipt}
             disabled={downloading}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-xl transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(79,70,229,0.3)] w-full sm:w-auto text-lg"
+            className="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition-colors disabled:opacity-50 w-full sm:w-auto text-sm"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            {downloading ? 'Downloading...' : 'DOWNLOAD RECEIPT'}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Just Download to Device
           </button>
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-3 mb-2">
-          <a href="https://api.whatsapp.com/send?text=I%20just%20voted%20in%20the%20Amity%20Elections!%20%E2%9C%85" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1DA851] text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-lg">
-            Share on WhatsApp
-          </a>
-          <a href="https://twitter.com/intent/tweet?text=I%20just%20voted%20in%20the%20Amity%20Elections!%20%E2%9C%85" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#1DA1F2] hover:bg-[#1A91DA] text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-lg">
-            Share on X
-          </a>
-          <a href="https://www.facebook.com/sharer/sharer.php?u=https://election-wheat.vercel.app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-lg">
-            Share on Facebook
-          </a>
         </div>
         <button 
           onClick={resetKiosk}
