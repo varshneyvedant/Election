@@ -7,8 +7,7 @@ export default function Navbar({ role, name }: { role: string, name?: string }) 
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/');
-    router.refresh();
+    window.location.href = '/';
   };
 
   const getRoleTitle = () => {

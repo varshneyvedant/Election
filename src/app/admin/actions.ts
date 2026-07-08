@@ -140,8 +140,11 @@ export async function toggleElection(isActive: boolean) {
 
     await prisma.election.upsert({
       where: { id: 1 },
-      update: { isActive },
-      create: { id: 1, isActive }
+      update: { 
+        isActive,
+        ...(isActive ? { resultsPublished: false } : {}) // Reset results if starting new election
+      },
+      create: { id: 1, isActive, resultsPublished: false }
     });
     revalidatePath('/admin');
     return { success: true };
