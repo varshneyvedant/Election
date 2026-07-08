@@ -311,33 +311,34 @@ export default function AdminTabs({ data }: { data: any }) {
 
       {/* User Modal */}
       {showUserModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="text-xl font-bold mb-4">{editingUser ? 'Edit User' : 'Add User'}</h3>
-            <form onSubmit={handleUserSubmit} className="space-y-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-cyan-500"></div>
+            <h3 className="text-xl font-bold mb-6 text-white">{editingUser ? 'Edit User' : 'Add User'}</h3>
+            <form onSubmit={handleUserSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500" />
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Name</label>
+                <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-indigo-500 transition-colors" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Username</label>
-                <input required type="text" value={formData.username || ''} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500" />
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Username</label>
+                <input required type="text" value={formData.username || ''} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-indigo-500 transition-colors" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Password {editingUser && '(leave blank to keep current)'}</label>
-                <input required={!editingUser} type="password" value={formData.password || ''} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500" />
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Password {editingUser && '(leave blank to keep current)'}</label>
+                <input required={!editingUser} type="password" value={formData.password || ''} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-indigo-500 transition-colors" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Role</label>
-                <select value={formData.role || 'student'} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500 bg-white">
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Role</label>
+                <select value={formData.role || 'student'} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-indigo-500 transition-colors appearance-none">
                   <option value="student">Student</option>
                   <option value="teacher">Teacher</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button type="button" onClick={() => setShowUserModal(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">Save</button>
+              <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-slate-800">
+                <button type="button" onClick={() => setShowUserModal(false)} className="px-5 py-2.5 text-slate-400 hover:text-white transition-colors font-bold text-sm">Cancel</button>
+                <button type="submit" disabled={loading} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 disabled:opacity-50 font-bold text-sm shadow-[0_0_15px_rgba(79,70,229,0.3)]">Save Record</button>
               </div>
             </form>
           </div>
@@ -346,17 +347,18 @@ export default function AdminTabs({ data }: { data: any }) {
 
       {/* Candidate Modal */}
       {showCandidateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="text-xl font-bold mb-4">{editingCandidate ? 'Edit Candidate' : 'Add Candidate'}</h3>
-            <form onSubmit={handleCandidateSubmit} className="space-y-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-cyan-500"></div>
+            <h3 className="text-xl font-bold mb-6 text-white">{editingCandidate ? 'Edit Candidate' : 'Add Candidate'}</h3>
+            <form onSubmit={handleCandidateSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1">Candidate Name</label>
-                <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg p-2 outline-none focus:border-blue-500" />
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Candidate Name</label>
+                <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-emerald-500 transition-colors" />
               </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button type="button" onClick={() => setShowCandidateModal(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">Save</button>
+              <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-slate-800">
+                <button type="button" onClick={() => setShowCandidateModal(false)} className="px-5 py-2.5 text-slate-400 hover:text-white transition-colors font-bold text-sm">Cancel</button>
+                <button type="submit" disabled={loading} className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 disabled:opacity-50 font-bold text-sm shadow-[0_0_15px_rgba(16,185,129,0.3)]">Save Candidate</button>
               </div>
             </form>
           </div>
