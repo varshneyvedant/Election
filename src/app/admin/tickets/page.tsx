@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { verifyAuth } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,7 @@ export default async function TicketsPage() {
     redirect('/login');
   }
 
-  const payload = await verifyAuth(token);
+  const payload = await verifyToken(token);
   if (!payload || payload.role !== 'admin') {
     redirect('/admin'); // Only full admins should print tickets
   }
