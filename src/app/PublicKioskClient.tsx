@@ -191,11 +191,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
   return (
     <div className="bg-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-lg rounded-2xl overflow-hidden relative">
       
-      {error && (
-        <div className="bg-red-500/10 text-red-400 p-4 text-center border-b border-red-500/20 font-medium">
-          {error}
-        </div>
-      )}
+      
 
       {step === 'verify' && (
         <div className="p-6 md:p-10 animate-in fade-in">
@@ -243,8 +239,14 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
                 onChange={(e) => setVoterKey(e.target.value.toUpperCase())}
                 placeholder="6-CHAR KEY"
                 maxLength={6}
-                className="w-full bg-slate-900/80 border-2 border-amber-500/50 rounded-xl px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                className="w-full bg-slate-900/80 border-2 border-amber-500/50 rounded-xl px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)] mb-4"
               />
+              
+              {error && (
+                <div className="bg-red-500/10 text-red-400 p-3 rounded-lg text-center border border-red-500/20 font-medium text-sm animate-in fade-in zoom-in-95">
+                  {error}
+                </div>
+              )}
             </div>
           )}
 
@@ -263,6 +265,12 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
       {step === 'vote' && (
         <div className="p-8 md:p-12 animate-in fade-in duration-500 relative">
           
+          {error && (
+            <div className="mb-6 bg-red-500/10 text-red-400 p-4 rounded-xl text-center border border-red-500/20 font-medium animate-in fade-in slide-in-from-top-2">
+              {error}
+            </div>
+          )}
+
           {confirmingCandidate && (
             <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in zoom-in-95 duration-200">
               <div className="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
