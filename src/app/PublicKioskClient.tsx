@@ -113,7 +113,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
         {/* VVPAT Receipt Simulation */}
         <div ref={receiptRef} className="bg-[#1e293b] border border-slate-700 rounded-lg p-6 max-w-sm mx-auto mb-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
-          <img src="https://upload.wikimedia.org/wikipedia/en/thumb/5/5f/Amity_University_logo.png/220px-Amity_University_logo.png" alt="Amity Logo" className="h-8 mx-auto mb-2 opacity-50 grayscale" />
+          <img src="/amity-logo.svg" alt="Amity Logo" className="h-10 mx-auto mb-3 opacity-50 grayscale" />
           <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Amity Digital Receipt</p>
           <p className="text-2xl font-mono text-indigo-300 tracking-[0.25em] mb-2">{receiptCode}</p>
           <p className="text-[10px] text-slate-600">Roll No: {voterId} &bull; Timestamp: {new Date().toLocaleTimeString()}</p>
