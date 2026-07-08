@@ -1,36 +1,44 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { castPublicVote } from './public-actions';
+import { useState, useRef, useEffect } from 'react';
+import { castPublicVote, getLiveTurnout } from './public-actions';
 import { Candidate } from '@prisma/client';
 import * as htmlToImage from 'html-to-image';
 
 export default function PublicKioskClient({ candidates }: { candidates: Candidate[] }) {
   const [step, setStep] = useState<'verify' | 'welcome' | 'vote' | 'success'>('verify');
   const [voterId, setVoterId] = useState('');
-  const [name, setName] = useState('');
   const [receiptCode, setReceiptCode] = useState('');
   
+  const [turnout, setTurnout] = useState(0);
+  const [confirmingCandidate, setConfirmingCandidate] = useState<{id: string, name: string} | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
 
   const receiptRef = useRef<HTMLDivElement>(null);
 
-  const handleVerify = (e: React.FormEvent) => {
-    e.preventDefault();
-    const rollStr = voterId.trim();
-    if (!rollStr) {
-      setError('Please enter your Roll Number.');
+  // Auto-poll turnout
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (step === 'verify') {
+      const fetchTurnout = async () => {
+        const t = await getLiveTurnout();
+        setTurnout(t);
+      };
+      fetchTurnout();
+      interval = setInterval(fetchTurnout, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [step]);
+
+  const handleVerify = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!voterId) {
+      setError('Please select your Roll Number.');
       return;
     }
-    const rollNo = parseInt(rollStr, 10);
-    if (isNaN(rollNo) || rollNo < 1 || rollNo > 30) {
-      setError('Invalid Roll No. Must be a number between 1 and 30.');
-      return;
-    }
-    // Normalize it visually
-    setVoterId(rollNo.toString());
     setError('');
     setStep('welcome');
     // Auto transition to ballot after 2.5s
@@ -39,28 +47,28 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
     }, 2500);
   };
 
-  const handleVote = async (candidateId: string, _candidateName: string) => {
+  const submitVote = async () => {
+    if (!confirmingCandidate) return;
     setIsSubmitting(true);
     setError('');
 
     const formData = new FormData();
     formData.append('voterId', voterId);
-    if (name) formData.append('name', name);
-    formData.append('candidateId', candidateId);
+    formData.append('candidateId', confirmingCandidate.id);
 
     const res = await castPublicVote(formData);
 
     if (res.error) {
       setError(res.error);
       setIsSubmitting(false);
-      if (res.error.includes('already cast')) {
+      setConfirmingCandidate(null);
+      if (res.error.includes('already cast') || res.error.includes('already been cast')) {
         setStep('verify');
       }
     } else {
       setReceiptCode(res.receiptCode || Math.random().toString(16).substring(2, 10).toUpperCase());
+      setConfirmingCandidate(null);
       setStep('success');
-      
-      // Auto-reset is paused if they click download, handled locally
     }
   };
 
@@ -82,7 +90,6 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
 
   const resetKiosk = () => {
     setVoterId('');
-    setName('');
     setReceiptCode('');
     setStep('verify');
     setIsSubmitting(false);
@@ -95,7 +102,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
           <svg className="w-12 h-12 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
         <h2 className="text-3xl font-light text-slate-300 mb-2">Identity Verified</h2>
-        <h1 className="text-4xl font-bold text-white mb-6 uppercase tracking-wider">{name || `Roll No. ${voterId}`}</h1>
+        <h1 className="text-4xl font-bold text-white mb-6 uppercase tracking-wider">Roll No. {voterId}</h1>
         <p className="text-indigo-400 font-medium animate-pulse">Preparing your secure ballot...</p>
       </div>
     );
@@ -104,12 +111,20 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
   if (step === 'success') {
     return (
       <div className="bg-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-lg rounded-2xl p-8 md:p-12 text-center animate-in slide-in-from-bottom-8 duration-500">
-        <div className="bg-emerald-500/20 text-emerald-400 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+        <div className="bg-emerald-500/20 text-emerald-400 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
           <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
         </div>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">Vote Cast Successfully</h2>
-        <p className="text-slate-400 text-lg mb-8">Your vote has been securely recorded on the server.</p>
+        <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2 tracking-tight">Vote Cast Successfully</h2>
+        <p className="text-slate-400 text-lg mb-4">Your vote has been securely recorded on the server.</p>
         
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl mb-6 max-w-sm mx-auto">
+          <p className="font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            STOP! IMPORTANT
+          </p>
+          <p className="text-xs mt-1">Please download your official VVPAT receipt to your camera roll before closing this page as proof of voting.</p>
+        </div>
+
         {/* VVPAT Receipt Simulation */}
         <div ref={receiptRef} className="bg-[#1e293b] border border-slate-700 rounded-lg p-6 max-w-sm mx-auto mb-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
@@ -120,29 +135,28 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
           <p className="text-[10px] text-slate-500">Roll No: {voterId} &bull; Timestamp: {new Date().toLocaleTimeString()}</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-2">
           <button 
             onClick={handleDownloadReceipt}
             disabled={downloading}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-xl transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(79,70,229,0.3)]"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-xl transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(79,70,229,0.3)] w-full sm:w-auto text-lg"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            {downloading ? 'Downloading...' : 'Download Receipt'}
-          </button>
-          
-          <button 
-            onClick={resetKiosk}
-            className="px-6 py-3 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition-colors font-bold"
-          >
-            Done (Log Out)
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            {downloading ? 'Downloading...' : 'DOWNLOAD RECEIPT'}
           </button>
         </div>
+        <button 
+          onClick={resetKiosk}
+          className="mt-6 text-slate-500 hover:text-slate-300 text-sm underline decoration-slate-700 underline-offset-4"
+        >
+          I have saved my receipt, Log Out
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-lg rounded-2xl overflow-hidden">
+    <div className="bg-slate-800/80 backdrop-blur-md border border-slate-700/50 shadow-lg rounded-2xl overflow-hidden relative">
       
       {error && (
         <div className="bg-red-500/10 text-red-400 p-4 text-center border-b border-red-500/20 font-medium">
@@ -151,46 +165,85 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
       )}
 
       {step === 'verify' && (
-        <div className="p-8 md:p-12 animate-in fade-in">
-          <h2 className="text-2xl font-bold text-white mb-8 text-center">Voter Authorization</h2>
-          <form onSubmit={handleVerify} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">
-                VOTER ID (ROLL NO 1-30) <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={voterId}
-                onChange={(e) => setVoterId(e.target.value)}
-                className="w-full px-4 py-4 rounded-xl bg-slate-900/50 border border-slate-700 text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none text-xl uppercase tracking-widest transition-all"
-                placeholder="ENTER ROLL NO"
-              />
+        <div className="p-6 md:p-10 animate-in fade-in">
+          <div className="flex flex-col items-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2 text-center">Voter Authorization</h2>
+            <div className="bg-indigo-900/50 border border-indigo-500/30 text-indigo-300 px-4 py-2 rounded-full text-sm font-bold tracking-widest flex items-center gap-3">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+              </span>
+              LIVE TURNOUT: {turnout} / 30 VOTES CAST
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">
-                FULL NAME (Optional)
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-4 rounded-xl bg-slate-900/50 border border-slate-700 text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none text-lg transition-all"
-                placeholder="Enter your name"
-              />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-slate-400 mb-4 text-center uppercase tracking-widest">
+              Tap Your Roll Number
+            </label>
+            <div className="grid grid-cols-5 gap-2 md:gap-3 max-w-lg mx-auto">
+              {Array.from({length: 30}, (_, i) => i + 1).map(num => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => setVoterId(num.toString())}
+                  className={`py-3 rounded-lg font-bold text-lg transition-all border ${
+                    voterId === num.toString() 
+                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.5)] scale-110 z-10' 
+                    : 'bg-slate-900/50 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-white'
+                  }`}
+                >
+                  {num}
+                </button>
+              ))}
             </div>
+          </div>
+          
+          <div className="max-w-lg mx-auto">
             <button
-              type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] text-lg mt-8 active:scale-[0.98]"
+              onClick={() => handleVerify()}
+              disabled={!voterId}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] disabled:shadow-none text-lg active:scale-[0.98]"
             >
               PROCEED TO BALLOT
             </button>
-          </form>
+          </div>
         </div>
       )}
 
       {step === 'vote' && (
-        <div className="p-8 md:p-12 animate-in fade-in duration-500">
+        <div className="p-8 md:p-12 animate-in fade-in duration-500 relative">
+          
+          {confirmingCandidate && (
+            <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in zoom-in-95 duration-200">
+              <div className="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+                <div className="w-20 h-20 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.3)]">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Confirm Your Vote</h3>
+                <p className="text-slate-300 text-lg mb-8">
+                  You are about to cast your official, permanent vote for <span className="font-black text-white uppercase bg-slate-700 px-2 py-1 rounded">{confirmingCandidate.name}</span>. Are you absolutely sure?
+                </p>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => setConfirmingCandidate(null)}
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-3 rounded-xl bg-slate-700 text-white font-bold hover:bg-slate-600 transition-colors disabled:opacity-50"
+                  >
+                    CANCEL
+                  </button>
+                  <button 
+                    onClick={submitVote}
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-3 rounded-xl bg-emerald-600 text-white font-black tracking-widest hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.4)] disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'CASTING...' : 'YES, VOTE'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-700/50">
             <div>
               <h2 className="text-2xl font-bold text-white">Official Ballot</h2>
@@ -198,7 +251,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
             </div>
             <button 
               onClick={() => setStep('verify')}
-              disabled={isSubmitting}
+              disabled={isSubmitting || confirmingCandidate !== null}
               className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium disabled:opacity-50 border border-slate-700"
             >
               Cancel
@@ -209,8 +262,8 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
             {candidates.map((candidate) => (
               <button
                 key={candidate.id}
-                onClick={() => handleVote(candidate.id, candidate.name)}
-                disabled={isSubmitting}
+                onClick={() => setConfirmingCandidate({ id: candidate.id, name: candidate.name })}
+                disabled={isSubmitting || confirmingCandidate !== null}
                 className="group relative bg-slate-800/50 border border-slate-700 rounded-2xl p-6 flex flex-col items-center hover:bg-slate-800 hover:border-indigo-500 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:scale-100 disabled:hover:border-slate-700 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/0 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -223,7 +276,7 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
                 
                 <div className="w-full bg-slate-900/50 border border-slate-700 group-hover:bg-indigo-600 group-hover:border-indigo-500 text-slate-400 group-hover:text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 z-10">
                   <span className="w-3 h-3 rounded-full bg-slate-700 group-hover:bg-white group-hover:shadow-[0_0_10px_#fff]"></span>
-                  VOTE
+                  SELECT
                 </div>
               </button>
             ))}

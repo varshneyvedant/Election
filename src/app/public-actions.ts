@@ -62,3 +62,12 @@ export async function castPublicVote(formData: FormData) {
     return { error: 'An unexpected error occurred while casting your vote.' };
   }
 }
+
+export async function getLiveTurnout() {
+  try {
+    const count = await prisma.vote.count();
+    return count;
+  } catch (err) {
+    return 0;
+  }
+}

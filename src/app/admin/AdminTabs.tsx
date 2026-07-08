@@ -205,11 +205,24 @@ export default function AdminTabs({ data }: { data: any }) {
         {/* CANDIDATES TAB */}
         {activeTab === 'candidates' && (
           <div className="animate-in fade-in">
+            {data.election?.isActive && (
+              <div className="mb-8 bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center gap-4 animate-pulse">
+                <div className="text-red-400">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div>
+                  <h4 className="text-red-400 font-bold uppercase tracking-widest text-sm">Election Lockdown Mode Active</h4>
+                  <p className="text-red-300/80 text-sm">Modifying candidates is strictly disabled while voting is live to ensure election integrity. Halt the election to make changes.</p>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-bold text-white tracking-tight">Ballot Configuration</h2>
               <button
                 onClick={() => { setEditingCandidate(null); setFormData({}); setShowCandidateModal(true); }}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-colors uppercase tracking-wider shadow-lg shadow-indigo-500/20"
+                disabled={data.election?.isActive}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-colors uppercase tracking-wider shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add Candidate
               </button>
@@ -225,11 +238,13 @@ export default function AdminTabs({ data }: { data: any }) {
                   <div className="flex space-x-4 text-sm font-bold uppercase tracking-wider pt-4 border-t border-slate-700/50">
                     <button 
                       onClick={() => { setEditingCandidate(c); setFormData({ name: c.name }); setShowCandidateModal(true); }}
-                      className="text-indigo-400 hover:text-indigo-300"
+                      disabled={data.election?.isActive}
+                      className="text-indigo-400 hover:text-indigo-300 disabled:opacity-30 disabled:cursor-not-allowed"
                     >Edit</button>
                     <button 
                       onClick={async () => { if(confirm('Delete candidate?')) { setLoading(true); await deleteCandidate(c.id); setLoading(false); } }}
-                      className="text-red-400 hover:text-red-300"
+                      disabled={data.election?.isActive}
+                      className="text-red-400 hover:text-red-300 disabled:opacity-30 disabled:cursor-not-allowed"
                     >Remove</button>
                   </div>
                 </div>

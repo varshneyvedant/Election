@@ -12,6 +12,13 @@ async function checkAdmin() {
   }
 }
 
+async function checkElectionLock() {
+  const election = await prisma.election.findUnique({ where: { id: 1 } });
+  if (election?.isActive) {
+    throw new Error('ELECTION LOCKDOWN: Cannot modify data while election is live.');
+  }
+}
+
 // User Management
 export async function addUser(data: any) {
   await checkAdmin();
@@ -69,17 +76,19 @@ export async function updateUser(id: string, data: any) {
 // Candidate Management
 export async function addCandidate(name: string) {
   await checkAdmin();
+  await checkElectionLock();
   try {
     await prisma.candidate.create({ data: { name } });
     revalidatePath('/admin');
     return { success: true };
-  } catch (e) {
-    return { error: 'Failed to add candidate' };
+  } catch (e: any) {
+    return { error: e.message || 'Failed to add candidate' };
   }
 }
 
 export async function deleteCandidate(id: string) {
   await checkAdmin();
+  await checkElectionLock();
   try {
     await prisma.$transaction([
       prisma.vote.deleteMany({ where: { candidateId: id } }),
@@ -87,8 +96,8 @@ export async function deleteCandidate(id: string) {
     ]);
     revalidatePath('/admin');
     return { success: true };
-  } catch (e) {
-    return { error: 'Failed to delete candidate' };
+  } catch (e: any) {
+    return { error: e.message || 'Failed to delete candidate' };
   }
 }
 
@@ -124,6 +133,7 @@ export async function toggleElection(isActive: boolean) {
 
 export async function resetElection() {
   await checkAdmin();
+  await checkElectionLock();
   try {
     await prisma.$transaction([
       prisma.vote.deleteMany({}),
@@ -138,7 +148,7 @@ export async function resetElection() {
     ]);
     revalidatePath('/admin');
     return { success: true };
-  } catch (e) {
-    return { error: 'Failed to reset election' };
+  } catch (e: any) {
+    return { error: e.message || 'Failed to reset election' };
   }
 }
