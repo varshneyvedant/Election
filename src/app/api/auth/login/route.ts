@@ -11,9 +11,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { username },
     });
+
+    // Auto-seed Amity Master Admin on first run in Postgres
+    if (!user && username === 'amity' && password === 'aismvschool') {
+      const adminCount = await prisma.user.count({ where: { role: 'admin' } });
+      if (adminCount === 0) {
+        const hashedPassword = await bcrypt.hash('aismvschool', 10);
+        user = await prisma.user.create({
+          data: {
+            username: 'amity',
+            password: hashedPassword,
+            name: 'Master Admin',
+            role: 'admin'
+          }
+        });
+      }
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
