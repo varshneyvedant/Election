@@ -63,11 +63,11 @@ export default function AdminTabs({ data }: { data: any }) {
 
   const [formData, setFormData] = useState<any>({});
 
-  const handleToggleElection = async (status: boolean) => {
-    if (!confirm(`Are you sure you want to ${status ? 'start' : 'stop'} the election?`)) return;
+  const handleToggleElection = async (isActive: boolean, resetDatabase: boolean = false) => {
     setLoading(true);
-    await toggleElection(status);
+    await toggleElection(isActive, resetDatabase);
     setLoading(false);
+    router.refresh();
   };
 
   const handleResetElection = async () => {
