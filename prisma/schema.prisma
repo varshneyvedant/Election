@@ -29,6 +29,7 @@ model Vote {
   candidateId String
   student     User      @relation(fields: [studentId], references: [id])
   candidate   Candidate @relation(fields: [candidateId], references: [id])
+  createdAt   DateTime  @default(now())
 
   @@unique([studentId]) // A student can only vote once
 }

@@ -125,14 +125,31 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
           <p className="text-xs mt-1">Please download your official VVPAT receipt to your camera roll before closing this page as proof of voting.</p>
         </div>
 
-        {/* VVPAT Receipt Simulation */}
-        <div ref={receiptRef} className="bg-[#1e293b] border border-slate-700 rounded-lg p-6 max-w-sm mx-auto mb-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
-          <div className="mb-4">
-            <h4 className="text-white font-black tracking-widest uppercase text-sm border-b border-slate-700 pb-2 mb-2">Amity VVPAT Receipt</h4>
+        {/* Instagram Graphic Receipt Simulation */}
+        <div ref={receiptRef} className="w-[300px] h-[533px] mx-auto mb-8 relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 flex flex-col justify-between p-6">
+          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay"></div>
+          
+          <div className="relative z-10 text-center mt-8">
+            <h4 className="text-white font-black tracking-[0.3em] uppercase text-xs mb-1 opacity-80">Amity Elections</h4>
+            <div className="h-px w-12 bg-white/30 mx-auto"></div>
+            <p className="text-[10px] text-white/50 mt-2 font-bold tracking-widest">2026</p>
           </div>
-          <p className="text-2xl font-mono text-indigo-300 tracking-[0.25em] mb-2">{receiptCode}</p>
-          <p className="text-[10px] text-slate-500">Roll No: {voterId} &bull; Timestamp: {new Date().toLocaleTimeString()}</p>
+
+          <div className="relative z-10 text-center flex-grow flex flex-col justify-center items-center">
+            <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-6 border border-white/20 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+              <span className="text-5xl">🗳️</span>
+            </div>
+            <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 tracking-tighter mb-2" style={{ textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+              I VOTED
+            </h2>
+            <p className="text-indigo-300 font-bold tracking-widest text-sm uppercase">Did you?</p>
+          </div>
+
+          <div className="relative z-10 text-center bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/10">
+            <p className="text-[8px] text-white/40 uppercase tracking-widest mb-1">Official Verification Hash</p>
+            <p className="text-xs font-mono text-white/70 tracking-[0.2em]">{receiptCode}</p>
+            <p className="text-[8px] text-white/30 mt-1">ID: {voterId} &bull; {new Date().toLocaleTimeString()}</p>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-2">

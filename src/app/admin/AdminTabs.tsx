@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ResultsLock from '@/components/ResultsLock';
+import confetti from 'canvas-confetti';
 import { 
   addUser, deleteUser, updateUser, 
   addCandidate, deleteCandidate, updateCandidate, 
@@ -22,6 +23,35 @@ export default function AdminTabs({ data }: { data: any }) {
     }, 3000);
     return () => clearInterval(interval);
   }, [router]);
+
+  const [resultsRevealed, setResultsRevealed] = useState(false);
+  const handleReveal = () => {
+    setResultsRevealed(true);
+    // Fire confetti explosion
+    const duration = 3000;
+    const end = Date.now() + duration;
+    
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#4f46e5', '#10b981', '#f59e0b']
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#4f46e5', '#10b981', '#f59e0b']
+      });
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+    frame();
+  };
 
   // Modals / Forms state
   const [showUserModal, setShowUserModal] = useState(false);
@@ -260,23 +290,47 @@ export default function AdminTabs({ data }: { data: any }) {
                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Decrypted Results</h2>
                <p className="text-slate-400 mb-8 uppercase tracking-widest text-xs font-bold">Highly Confidential</p>
                
-               <div className="space-y-4 mb-8">
-                 {data.candidates.map((c: any) => (
-                   <div key={c.id} className="flex justify-between items-center p-6 border border-slate-700 rounded-2xl bg-slate-900/50 hover:bg-slate-800 transition-colors relative overflow-hidden">
-                     <div className="relative z-10 flex items-center gap-4">
-                       <div className="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center font-bold uppercase">{c.name.charAt(0)}</div>
-                       <span className="font-bold text-white text-lg">{c.name}</span>
-                     </div>
-                     <span className="relative z-10 font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">{c._count.votes} <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Votes</span></span>
+               {!resultsRevealed ? (
+                 <div className="flex flex-col items-center justify-center py-20 bg-slate-900/80 rounded-3xl border border-slate-700 shadow-2xl relative overflow-hidden group">
+                   <div className="absolute inset-0 bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-colors"></div>
+                   <svg className="w-24 h-24 text-slate-600 mb-8 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                   <button 
+                     onClick={handleReveal}
+                     className="relative z-10 px-12 py-6 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-black text-2xl tracking-widest uppercase rounded-2xl shadow-[0_0_50px_rgba(79,70,229,0.5)] hover:shadow-[0_0_80px_rgba(79,70,229,0.8)] hover:scale-105 transition-all duration-300"
+                   >
+                     Reveal Winner
+                   </button>
+                 </div>
+               ) : (
+                 <div className="animate-in slide-in-from-bottom-8 duration-700 fade-in zoom-in-95">
+                   <div className="space-y-4 mb-8">
+                     {data.candidates.sort((a:any, b:any) => b._count.votes - a._count.votes).map((c: any, index: number) => (
+                       <div key={c.id} className={`flex justify-between items-center p-6 border rounded-2xl transition-all relative overflow-hidden ${index === 0 ? 'bg-amber-500/10 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : 'bg-slate-900/50 border-slate-700'}`}>
+                         {index === 0 && <div className="absolute top-0 left-0 w-2 h-full bg-amber-500 shadow-[0_0_20px_#f59e0b]"></div>}
+                         <div className="relative z-10 flex items-center gap-4">
+                           <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold uppercase text-xl ${index === 0 ? 'bg-amber-500 text-white shadow-lg' : 'bg-indigo-500/20 text-indigo-400'}`}>{c.name.charAt(0)}</div>
+                           <div>
+                             <span className="font-bold text-white text-xl block">{c.name}</span>
+                             {index === 0 && <span className="text-amber-400 text-xs font-bold uppercase tracking-widest">Projected Winner</span>}
+                           </div>
+                         </div>
+                         <div className="flex flex-col items-end">
+                           <span className={`relative z-10 font-black text-3xl ${index === 0 ? 'text-amber-400' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400'}`}>
+                             {c._count.votes}
+                           </span>
+                           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Votes</span>
+                         </div>
+                       </div>
+                     ))}
                    </div>
-                 ))}
-               </div>
 
-               <div className="p-8 bg-indigo-600 rounded-2xl flex justify-between items-center font-bold shadow-[0_0_40px_rgba(79,70,229,0.3)] relative overflow-hidden">
-                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.1] mix-blend-overlay"></div>
-                 <span className="text-indigo-200 uppercase tracking-widest z-10">Total Verified Ballots</span>
-                 <span className="text-4xl text-white z-10 font-black">{data.candidates.reduce((a:any, c:any) => a + c._count.votes, 0)}</span>
-               </div>
+                   <div className="p-8 bg-indigo-600 rounded-2xl flex justify-between items-center font-bold shadow-[0_0_40px_rgba(79,70,229,0.3)] relative overflow-hidden">
+                     <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.1] mix-blend-overlay"></div>
+                     <span className="text-indigo-200 uppercase tracking-widest z-10">Total Verified Ballots</span>
+                     <span className="text-4xl text-white z-10 font-black">{data.candidates.reduce((a:any, c:any) => a + c._count.votes, 0)}</span>
+                   </div>
+                 </div>
+               )}
             </div>
           </ResultsLock>
         )}
@@ -299,6 +353,7 @@ export default function AdminTabs({ data }: { data: any }) {
                     <tr>
                       <th className="px-6 py-4 font-bold">Voter ID / Name</th>
                       <th className="px-6 py-4 font-bold">Voted For</th>
+                      <th className="px-6 py-4 font-bold text-right">Time Cast</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/50">
@@ -309,6 +364,9 @@ export default function AdminTabs({ data }: { data: any }) {
                           {log.student.name}
                         </td>
                         <td className="px-6 py-4 font-bold text-emerald-400 uppercase tracking-wider">{log.candidate.name}</td>
+                        <td className="px-6 py-4 font-mono text-slate-400 text-right text-xs">
+                          {log.createdAt ? new Date(log.createdAt).toLocaleTimeString() : 'N/A'}
+                        </td>
                       </tr>
                     ))}
                     {(!data.auditLogs || data.auditLogs.length === 0) && (
