@@ -154,9 +154,9 @@ export default function AdminTabs({ data }: { data: any }) {
                 <button
                   onClick={() => handleToggleElection(!data.election?.isActive)}
                   disabled={loading}
-                  className={`px-8 py-4 rounded-xl font-bold text-white transition-all shadow-lg uppercase tracking-widest active:scale-95 ${data.election?.isActive ? 'bg-red-600 hover:bg-red-500 hover:shadow-red-500/30' : 'bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/30'}`}
+                  className={`px-8 py-4 rounded-xl font-bold text-white transition-all shadow-lg uppercase tracking-widest active:scale-95 ${data.election?.isActive ? 'bg-red-600 hover:bg-red-500 hover:shadow-red-500/30' : 'bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/30'} disabled:opacity-50 disabled:animate-pulse`}
                 >
-                  {data.election?.isActive ? 'Halt Election' : 'Initialize Election'}
+                  {loading ? (data.election?.isActive ? 'HALTING...' : 'INITIALIZING...') : (data.election?.isActive ? 'Halt Election' : 'Initialize Election')}
                 </button>
               </div>
             </div>
@@ -168,14 +168,6 @@ export default function AdminTabs({ data }: { data: any }) {
                   <p className="text-sm text-indigo-200/70">The system has generated 30 unique, mathematically secure Voter Keys. Distribute these privately to students for remote voting.</p>
                 </div>
                 <div className="flex gap-4">
-                  <a
-                    href="/admin/tickets"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-6 py-3 rounded-xl font-bold text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors uppercase tracking-widest text-sm whitespace-nowrap shadow-[0_0_20px_rgba(0,0,0,0.4)] inline-flex items-center justify-center"
-                  >
-                    Print Tickets (PDF)
-                  </a>
                   <button
                     onClick={() => {
                       const headers = "Roll Number,Secret Key\n";

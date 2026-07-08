@@ -121,6 +121,7 @@ export async function toggleElection(isActive: boolean) {
   try {
     if (isActive) {
       // PRE-GENERATE ALL 30 STUDENTS WITH SECRET KEYS
+      await prisma.vote.deleteMany({});
       await prisma.user.deleteMany({ where: { role: 'student' } });
       
       const newStudents = [];
