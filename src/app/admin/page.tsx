@@ -40,7 +40,7 @@ export default async function AdminDashboard() {
 
   const data = {
     election,
-    users: users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, hasVoted: u.hasVoted })),
+    users: users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, hasVoted: u.hasVoted, password: u.password })),
     candidates,
     auditLogs: votes
   };

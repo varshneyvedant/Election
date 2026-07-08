@@ -36,7 +36,7 @@ export default async function PublicVotingPage() {
       {/* Top Header */}
       <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 shadow-2xl border-b border-slate-700/50 p-6 relative z-10 flex flex-col items-center">
         <div className="flex items-center justify-center gap-4 mb-2">
-          <img src="/amity-logo.svg" alt="Amity Logo" className="h-16 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+          <img src="/amity-logo.png" alt="Amity Logo" className="h-20 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
           <div className="text-left border-l-2 border-slate-700 pl-4">
             <h2 className="text-xl md:text-2xl font-black tracking-tight text-white uppercase leading-none">Amity International School</h2>
             <p className="text-indigo-400 font-bold tracking-widest text-sm uppercase">Mayur Vihar</p>
