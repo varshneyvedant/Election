@@ -375,7 +375,11 @@ export default function PublicKioskClient({ candidates }: { candidates: Candidat
                   {candidate.name.charAt(0)}
                 </div>
                 
-                <h3 className="text-2xl font-bold text-white text-center mb-6 z-10">{candidate.name}</h3>
+                <h3 className="text-2xl font-bold text-white text-center mb-2 z-10">{candidate.name}</h3>
+                {candidate.slogan && (
+                  <p className="text-sm font-medium text-indigo-300 text-center mb-6 z-10 italic">"{candidate.slogan}"</p>
+                )}
+                {!candidate.slogan && <div className="mb-6"></div>}
                 
                 <div className="w-full bg-slate-900/50 border border-slate-700 group-hover:bg-indigo-600 group-hover:border-indigo-500 text-slate-400 group-hover:text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 z-10">
                   <span className="w-3 h-3 rounded-full bg-slate-700 group-hover:bg-white group-hover:shadow-[0_0_10px_#fff]"></span>

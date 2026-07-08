@@ -18,9 +18,10 @@ model User {
 }
 
 model Candidate {
-  id    String @id @default(uuid())
-  name  String
-  votes Vote[]
+  id     String @id @default(uuid())
+  name   String
+  slogan String?
+  votes  Vote[]
 }
 
 model Vote {
@@ -35,6 +36,7 @@ model Vote {
 }
 
 model Election {
-  id       Int     @id @default(1)
-  isActive Boolean @default(false)
+  id               Int     @id @default(1)
+  isActive         Boolean @default(false)
+  resultsPublished Boolean @default(false)
 }

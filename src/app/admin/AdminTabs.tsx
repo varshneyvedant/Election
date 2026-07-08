@@ -7,7 +7,7 @@ import confetti from 'canvas-confetti';
 import { 
   addUser, deleteUser, updateUser, 
   addCandidate, deleteCandidate, updateCandidate, 
-  toggleElection, resetElection 
+  toggleElection, resetElection, toggleResults
 } from './actions';
 
 export default function AdminTabs({ data }: { data: any }) {
@@ -15,6 +15,7 @@ export default function AdminTabs({ data }: { data: any }) {
   const [activeTab, setActiveTab] = useState('election');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [revealedKeys, setRevealedKeys] = useState<Record<string, boolean>>({});
 
   // Auto-refresh the page data every 3 seconds for live results
   useEffect(() => {
@@ -100,9 +101,9 @@ export default function AdminTabs({ data }: { data: any }) {
     setLoading(true);
     let res;
     if (editingCandidate) {
-      res = await updateCandidate(editingCandidate.id, formData.name);
+      res = await updateCandidate(editingCandidate.id, formData.name, formData.slogan || '');
     } else {
-      res = await addCandidate(formData.name);
+      res = await addCandidate(formData.name, formData.slogan || '');
     }
     setLoading(false);
     if (res?.error) setError(res.error);
@@ -166,21 +167,29 @@ export default function AdminTabs({ data }: { data: any }) {
                   <h3 className="font-bold text-indigo-400 text-lg uppercase tracking-wider mb-2">Remote Voter Keys</h3>
                   <p className="text-sm text-indigo-200/70">The system has generated 30 unique, mathematically secure Voter Keys. Distribute these privately to students for remote voting.</p>
                 </div>
-                <button
-                  onClick={() => {
-                    const headers = "Roll Number,Secret Key\n";
-                    const rows = data.users.filter((u:any) => u.role === 'student').map((u:any) => `${u.username},${u.password}`).join('\n');
-                    const blob = new Blob([headers + rows], { type: 'text/csv' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'Amity_Remote_Voter_Keys.csv';
-                    a.click();
-                  }}
-                  className="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors uppercase tracking-widest text-sm whitespace-nowrap shadow-[0_0_20px_rgba(79,70,229,0.4)]"
-                >
-                  Download Keys (CSV)
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => window.open('/admin/tickets', '_blank')}
+                    className="px-6 py-3 rounded-xl font-bold text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors uppercase tracking-widest text-sm whitespace-nowrap shadow-[0_0_20px_rgba(0,0,0,0.4)]"
+                  >
+                    Print Tickets (PDF)
+                  </button>
+                  <button
+                    onClick={() => {
+                      const headers = "Roll Number,Secret Key\n";
+                      const rows = data.users.filter((u:any) => u.role === 'student').map((u:any) => `${u.username},${u.password}`).join('\n');
+                      const blob = new Blob([headers + rows], { type: 'text/csv' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'Amity_Remote_Voter_Keys.csv';
+                      a.click();
+                    }}
+                    className="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors uppercase tracking-widest text-sm whitespace-nowrap shadow-[0_0_20px_rgba(79,70,229,0.4)]"
+                  >
+                    Download Keys (CSV)
+                  </button>
+                </div>
               </div>
             )}
             
@@ -219,6 +228,7 @@ export default function AdminTabs({ data }: { data: any }) {
                     <th className="px-6 py-4 font-bold">Name</th>
                     <th className="px-6 py-4 font-bold">ID / Username</th>
                     <th className="px-6 py-4 font-bold">Clearance</th>
+                    <th className="px-6 py-4 font-bold">Secret Key</th>
                     <th className="px-6 py-4 font-bold">Voted</th>
                     <th className="px-6 py-4 font-bold text-right">Actions</th>
                   </tr>
@@ -232,6 +242,22 @@ export default function AdminTabs({ data }: { data: any }) {
                         <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${u.role === 'admin' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' : u.role === 'teacher' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' : 'bg-slate-700/50 text-slate-300 border-slate-600'}`}>
                           {u.role}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {u.role === 'student' ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono bg-slate-800 border border-slate-700 px-2 py-1 rounded text-slate-400">
+                              {revealedKeys[u.id] ? u.password : '••••••'}
+                            </span>
+                            <button 
+                              onClick={() => setRevealedKeys(prev => ({...prev, [u.id]: !prev[u.id]}))}
+                              className="text-slate-500 hover:text-indigo-400 transition-colors focus:outline-none"
+                              title="Reveal Key"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </button>
+                          </div>
+                        ) : '-'}
                       </td>
                       <td className="px-6 py-4">
                         {u.role === 'student' ? (
@@ -291,7 +317,7 @@ export default function AdminTabs({ data }: { data: any }) {
                   <span className="font-bold text-white text-xl mb-6">{c.name}</span>
                   <div className="flex space-x-4 text-sm font-bold uppercase tracking-wider pt-4 border-t border-slate-700/50">
                     <button 
-                      onClick={() => { setEditingCandidate(c); setFormData({ name: c.name }); setShowCandidateModal(true); }}
+                      onClick={() => { setEditingCandidate(c); setFormData({ name: c.name, slogan: c.slogan }); setShowCandidateModal(true); }}
                       disabled={data.election?.isActive}
                       className="text-indigo-400 hover:text-indigo-300 disabled:opacity-30 disabled:cursor-not-allowed"
                     >Edit</button>
@@ -313,6 +339,24 @@ export default function AdminTabs({ data }: { data: any }) {
             <div className="animate-in fade-in">
                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Decrypted Results</h2>
                <p className="text-slate-400 mb-8 uppercase tracking-widest text-xs font-bold">Highly Confidential</p>
+               
+               <div className="flex items-center justify-between mb-8 p-4 bg-slate-900/50 border border-slate-700 rounded-xl">
+                 <div>
+                   <h3 className="text-white font-bold tracking-wide">Broadcast Results to Public</h3>
+                   <p className="text-slate-400 text-sm">When enabled, students can see the confetti reveal at <span className="font-mono text-indigo-400">/results</span></p>
+                 </div>
+                 <button
+                   onClick={async () => {
+                     setLoading(true);
+                     await toggleResults(!data.election?.resultsPublished);
+                     setLoading(false);
+                   }}
+                   disabled={loading}
+                   className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none ${data.election?.resultsPublished ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                 >
+                   <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${data.election?.resultsPublished ? 'translate-x-7' : 'translate-x-1'}`} />
+                 </button>
+               </div>
                
                {!resultsRevealed ? (
                  <div className="flex flex-col items-center justify-center py-20 bg-slate-900/80 rounded-3xl border border-slate-700 shadow-2xl relative overflow-hidden group">
@@ -452,6 +496,10 @@ export default function AdminTabs({ data }: { data: any }) {
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Candidate Name</label>
                 <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-emerald-500 transition-colors" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Slogan / Manifesto (Optional)</label>
+                <input type="text" value={formData.slogan || ''} onChange={e => setFormData({...formData, slogan: e.target.value})} placeholder="e.g. Focus on Sports & Tech" className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-emerald-500 transition-colors" />
               </div>
               <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-slate-800">
                 <button type="button" onClick={() => setShowCandidateModal(false)} className="px-5 py-2.5 text-slate-400 hover:text-white transition-colors font-bold text-sm">Cancel</button>

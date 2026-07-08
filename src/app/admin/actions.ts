@@ -74,11 +74,11 @@ export async function updateUser(id: string, data: any) {
 }
 
 // Candidate Management
-export async function addCandidate(name: string) {
+export async function addCandidate(name: string, slogan: string) {
   await checkAdmin();
   await checkElectionLock();
   try {
-    await prisma.candidate.create({ data: { name } });
+    await prisma.candidate.create({ data: { name, slogan } });
     revalidatePath('/admin');
     return { success: true };
   } catch (e: any) {
@@ -101,12 +101,12 @@ export async function deleteCandidate(id: string) {
   }
 }
 
-export async function updateCandidate(id: string, name: string) {
+export async function updateCandidate(id: string, name: string, slogan: string) {
   await checkAdmin();
   try {
     await prisma.candidate.update({
       where: { id },
-      data: { name },
+      data: { name, slogan },
     });
     revalidatePath('/admin');
     return { success: true };
@@ -146,6 +146,22 @@ export async function toggleElection(isActive: boolean) {
     return { success: true };
   } catch (e: any) {
     return { error: e.message || 'Failed to toggle election status' };
+  }
+}
+
+export async function toggleResults(resultsPublished: boolean) {
+  await checkAdmin();
+  try {
+    await prisma.election.upsert({
+      where: { id: 1 },
+      update: { resultsPublished },
+      create: { id: 1, resultsPublished }
+    });
+    revalidatePath('/admin');
+    revalidatePath('/results');
+    return { success: true };
+  } catch (e: any) {
+    return { error: e.message || 'Failed to toggle results status' };
   }
 }
 
