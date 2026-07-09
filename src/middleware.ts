@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Paths that don't require authentication
-  if (path === '/' || path === '/login' || path.startsWith('/api/auth') || path.startsWith('/results')) {
+  if (path === '/' || path === '/login' || path.startsWith('/api/auth') || path.startsWith('/results') || path.startsWith('/manual')) {
     // If logged in and at login page, redirect away
     if (token && path === '/login') {
       const payload = await verifyToken(token);
